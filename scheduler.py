@@ -13,21 +13,25 @@ def init_scheduler(app):
     scheduler = BackgroundScheduler()
 
     # Rapport hebdomadaire — chaque lundi à 8h00
+    # misfire_grace_time : si le serveur était éteint au moment prévu,
+    # le job se déclenche quand même au prochain démarrage (dans la fenêtre de 6h)
     scheduler.add_job(
         func=send_weekly_reports,
         trigger=CronTrigger(day_of_week="mon", hour=8, minute=0),
         id="weekly_report",
         name="Rapport hebdomadaire VigilOS",
         replace_existing=True,
+        misfire_grace_time=6 * 3600,
     )
 
     # Sync alertes — toutes les heures
     scheduler.add_job(
         func=sync_all_alerts,
-        trigger=CronTrigger(minute=0),  # toutes les heures pile
+        trigger=CronTrigger(minute=0),
         id="sync_alerts",
         name="Synchronisation alertes",
         replace_existing=True,
+        misfire_grace_time=1800,
     )
 
     # Nettoyage alertes — chaque jour à minuit
@@ -37,6 +41,7 @@ def init_scheduler(app):
         id="cleanup_alerts",
         name="Nettoyage alertes anciennes",
         replace_existing=True,
+        misfire_grace_time=3600,
     )
 
     scheduler.start()
